@@ -76,22 +76,12 @@ def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,ut
 	if convbin_path == None:
 		return
 	try:
-		cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3'
+		date = utc_year + '/' + utc_day + '/' + utc_hour
+		cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3' + ' -tr ' + date + ' 00:00:00'
 		print(cmd)
 		os.system(cmd)
 	except:
 		pass
-
-
-
-
-mystoragename = "virtualmachinesdiag817"
-mystoragekey = "yFhi0df80NarvV3cPbHraHJLGsjUf29moFcSTq2glQQALWk5lv6wn+Z7bOsgEtD7IT4dj0wLGWxyuPihlQ868g=="
-blob_service = BlockBlobService(account_name=mystoragename, account_key=mystoragekey)
-
-containerGenerator = blob_service.list_containers()
-marker = None
-
 
 
 def to_width(old_value):
@@ -114,33 +104,34 @@ def file_search(root_dir):
 				file_path_list.append(filepath)
 	return file_path_list
 
-for con in containerGenerator:
-	time_list = []
-	if 'base-station' in con.name:
-		file_list = file_search('./')
-		print(file_list)
-		path_list = []
-		for file in file_list:
-			path_list.append(os.path.dirname(file))
-		print (path_list)
-		for i in range(len(path_list)):
-			file_time = file_list[i][-23:-4]
-			time_list = file_time.split('_')
-			print(time_list)
-			utc_day,utc_year,utc_hour = get_utc_day(time_list)
-			print("utc_day = %s,utc_year = %s,utc_hour = %s" % (utc_day,utc_year,utc_hour))
-			localpath = path_list[i] + '/' + 'base/'
-			downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour)
-		'''
-		for file in files:
-			if ('novatel' in file) and ('.bin' in file):
-				print("select file is: %s" % file)
-				file_time = file[-23:-4]
+
+if __name__ == '__main__':
+	mystoragename = "virtualmachinesdiag817"
+	#mystoragekey = "JKDLzWW4KcbmpeF9RDLZWemHOXcTTCwO/DHDYQ/h94Gx4NAiqa/s2xqn26NShnWfD7vN0UyJnURZ5kEhN/jXlw=="
+	print('input your key:')
+	key = input()
+	mystoragekey = key
+	blob_service = BlockBlobService(account_name=mystoragename, account_key=mystoragekey)
+
+	containerGenerator = blob_service.list_containers()
+	marker = None
+	for con in containerGenerator:
+		time_list = []
+		if 'base-station' in con.name:
+			file_list = file_search('./')
+			print(file_list)
+			path_list = []
+			for file in file_list:
+				path_list.append(os.path.dirname(file))
+			print (path_list)
+			for i in range(len(path_list)):
+				file_time = file_list[i][-23:-4]
 				time_list = file_time.split('_')
 				print(time_list)
-		utc_day,utc_year,utc_hour = get_utc_day(time_list)
-		downloadFilesInContainer(blob_service,con.name,utc_year,utc_day,utc_hour)
-		'''
+				utc_day,utc_year,utc_hour = get_utc_day(time_list)
+				print("utc_day = %s,utc_year = %s,utc_hour = %s" % (utc_day,utc_year,utc_hour))
+				localpath = path_list[i] + '/' + 'base/'
+				downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour)
 
 
 
