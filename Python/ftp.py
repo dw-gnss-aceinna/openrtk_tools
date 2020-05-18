@@ -5,6 +5,9 @@ from ftplib import FTP
 import gzip
 import time
 import datetime
+import zlib
+import zipfile
+import unlzw
 
 def un_gz(localpath,file_name):
 	file_now = localpath + '/' + file_name
@@ -14,6 +17,14 @@ def un_gz(localpath,file_name):
 	open(f_name, "wb+").write(g_file.read())
 	g_file.close()
 
+
+def decompress_z(localpath,file_name):
+	src = localpath + '/' + file_name
+	my_dst = src[0:-2]
+	uc_func = unlzw.unlzw if src.endswith('.Z') else gzip.decompress
+	with open(src, 'rb') as sf, open(my_dst, 'wb') as df:
+		buffer = sf.read()
+		df.write(uc_func(buffer))
 
 def ftpConnect(ftpserver, port, usrname, password):
     ftp = FTP()
@@ -36,30 +47,30 @@ def ftpDownloadFile(ftp, ftpfile, localfile):
 
 
 def ftpDownload(ftp, ftpath, localpath):
-	print('ftp_path: {0}'.format(ftpath))
-	if not os.path.exists(localpath):
-		os.makedirs(localpath)
-	ftp.cwd(ftpath)
-	print('+---------- downloading ----------+')
-	#print(ftp.nlst())
-	for file in ftp.nlst():
-		#print(file)
-		if 'BRDC00IGS_R' in file:
-			local = os.path.join(localpath, file)
-			if os.path.isdir(file):
-				if not os.path.exists(local):
-					os.makedirs(local)
-				ftpDownload(ftp, file, local)
-			else:
-				ftpDownloadFile(ftp, file, local)
-				un_gz(localpath,file)
-		else:
-			continue
-	ftp.cwd('..')
-	#ftp.quit()
-	return True
+    print('ftp_path: {0}'.format(ftpath))
+    if not os.path.exists(localpath):
+        os.makedirs(localpath)
+    ftp.cwd(ftpath)
+    print('+---------- downloading ----------+')
+    for file in ftp.nlst('-a', '.'):
+        #print('file = --------------------%s' % file)
+        if 'brdm' in file:
+            local = os.path.join(localpath, file)
+            print('local = ---------------------%s' % local)
+            if os.path.isdir(file):
+                if not os.path.exists(local):
+                    os.makedirs(local)
+                ftpDownload(ftp, file, local)
+            else:
+                ftpDownloadFile(ftp, file, local)
+                decompress_z(localpath,file)
+        else:
+            continue
+    ftp.cwd('..')
+    #ftp.quit()
+    return True
 
-# 退出ftp连接
+
 def ftpDisConnect(ftp):
 	try:
 		ftp.quit()
@@ -124,6 +135,7 @@ def to_width(old_value):
 
 if __name__ == '__main__':
 	ftpserver = 'cddis.gsfc.nasa.gov'
+	ftpserver = 'cddis.nasa.gov'
 	port = 21
 	usrname = ''
 	pwd = ''
@@ -142,7 +154,7 @@ if __name__ == '__main__':
 		utc_day,utc_year = get_utc_day(time_list)
 		utc_day = to_width(utc_day)
 		print("utc_day = %s,utc_year = %s" % (utc_day,utc_year))
-		ftpath = '/gnss/data/daily/' + utc_year + '/' + utc_day + '/' + '20p/'
+		ftpath = 'gnss/data/campaign/mgex/daily/rinex3/' + utc_year + '/' + utc_day + '/' + utc_year[2:] + 'p/'
 		localpath = path_list[i] + '/' + 'ephemeris/'
 		print (localpath)
 		print(ftpath)

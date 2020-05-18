@@ -5,7 +5,6 @@ import time
 import datetime
 #from utc import get_utc_day,file_search
 
-
 def get_utc_day(time_list):
 	year = int(time_list[0])
 	month = int(time_list[1])
@@ -77,7 +76,7 @@ def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,ut
 		return
 	try:
 		date = utc_year + '/' + utc_day + '/' + utc_hour
-		cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3' + ' -tr ' + date + ' 00:00:00'
+		cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3' + ' -tr ' + date + ' 00:00:00  -v 3.04'
 		print(cmd)
 		os.system(cmd)
 	except:
