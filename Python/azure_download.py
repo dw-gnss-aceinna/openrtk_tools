@@ -130,7 +130,6 @@ def base_download(thread_name,span_path,storage_name,key,queue):
                 print("utc_day = %s,utc_year = %s,utc_hour = %s" % (utc_day,utc_year,utc_hour))
                 localpath = path_list[i] + '/' + 'base/'
                 downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour)
-    print('azure end')
     queue.put("azure_end")
 
 

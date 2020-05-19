@@ -164,6 +164,5 @@ def ephemeris_download(thread_name,span_path,queue):
         flag = ftpDownload(ftp, ftpath, localpath)
         ftpDisConnect(ftp)
         print("+-------- OK!!! --------+\n")
-    print('ftp end')
     queue.put("ftp_end")
 
