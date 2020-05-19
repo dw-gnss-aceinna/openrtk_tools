@@ -106,7 +106,6 @@ def file_search(root_dir):
 
 if __name__ == '__main__':
 	mystoragename = "virtualmachinesdiag817"
-	#mystoragekey = "JKDLzWW4KcbmpeF9RDLZWemHOXcTTCwO/DHDYQ/h94Gx4NAiqa/s2xqn26NShnWfD7vN0UyJnURZ5kEhN/jXlw=="
 	print('input your key:')
 	key = input()
 	mystoragekey = key
