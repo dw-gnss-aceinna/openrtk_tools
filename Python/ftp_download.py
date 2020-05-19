@@ -8,6 +8,7 @@ import datetime
 import zlib
 import zipfile
 import unlzw
+from queue import Queue
 
 def un_gz(localpath,file_name):
 	file_now = localpath + '/' + file_name
@@ -133,33 +134,36 @@ def to_width(old_value):
 		ret = old_value
 	return ret
 
-if __name__ == '__main__':
-	ftpserver = 'cddis.gsfc.nasa.gov'
-	ftpserver = 'cddis.nasa.gov'
-	port = 21
-	usrname = ''
-	pwd = ''
-	localpath = './data/'
-	#dir,files = file_search('./',False)
-	file_list = file_search('./')
-	print(file_list)
-	path_list = []
-	for file in file_list:
-		path_list.append(os.path.dirname(file))
-	print (path_list)
-	for i in range(len(path_list)):
-		print("select file is: %s" % file)
-		file_time = file_list[i][-23:-4]
-		time_list = file_time.split('_')
-		utc_day,utc_year = get_utc_day(time_list)
-		utc_day = to_width(utc_day)
-		print("utc_day = %s,utc_year = %s" % (utc_day,utc_year))
-		ftpath = 'gnss/data/campaign/mgex/daily/rinex3/' + utc_year + '/' + utc_day + '/' + utc_year[2:] + 'p/'
-		localpath = path_list[i] + '/' + 'ephemeris/'
-		print (localpath)
-		print(ftpath)
-		ftp = ftpConnect(ftpserver, 21, usrname, pwd)
-		flag = ftpDownload(ftp, ftpath, localpath)
-		ftpDisConnect(ftp)
-		print("+-------- OK!!! --------+\n")
+def ephemeris_download(thread_name,span_path,queue):
+    print(span_path)
+    ftpserver = 'cddis.gsfc.nasa.gov'
+    ftpserver = 'cddis.nasa.gov'
+    port = 21
+    usrname = ''
+    pwd = ''
+    localpath = './data/'
+    #dir,files = file_search('./',False)
+    file_list = file_search(span_path)
+    print(file_list)
+    path_list = []
+    for file in file_list:
+        path_list.append(os.path.dirname(file))
+    print (path_list)
+    for i in range(len(path_list)):
+        print("select file is: %s" % file)
+        file_time = file_list[i][-23:-4]
+        time_list = file_time.split('_')
+        utc_day,utc_year = get_utc_day(time_list)
+        utc_day = to_width(utc_day)
+        print("utc_day = %s,utc_year = %s" % (utc_day,utc_year))
+        ftpath = 'gnss/data/campaign/mgex/daily/rinex3/' + utc_year + '/' + utc_day + '/' + utc_year[2:] + 'p/'
+        localpath = path_list[i] + '/' + 'ephemeris/'
+        print (localpath)
+        print(ftpath)
+        ftp = ftpConnect(ftpserver, 21, usrname, pwd)
+        flag = ftpDownload(ftp, ftpath, localpath)
+        ftpDisConnect(ftp)
+        print("+-------- OK!!! --------+\n")
+    print('ftp end')
+    queue.put("ftp_end")
 

@@ -4,6 +4,7 @@ import os
 import time
 import datetime
 #from utc import get_utc_day,file_search
+from queue import Queue
 
 def get_utc_day(time_list):
 	year = int(time_list[0])
@@ -27,7 +28,7 @@ def get_utc_day(time_list):
 	print(utc_hour_str)
 	return utc_day_str,utc_year_str,utc_hour_str
 	
-def file_convbin_file(file_to_search,root_dir):
+def find_convbin_file(file_to_search,root_dir):
 	for root,dirs,files in os.walk(root_dir):
 		for filename in files:
 			if (file_to_search in filename):
@@ -64,7 +65,7 @@ def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,ut
 	all_file_name_path = os.path.join(local_path, all_file_name)
 	fs = open(all_file_name_path,'ab')
 	#rtcm3_file = 'rtcm3_data_' + utc_year + '_' + utc_day + '_' + utc_hour
-	convbin_path = file_convbin_file('convbin.exe','./')
+	convbin_path = find_convbin_file('convbin.exe','../')
 
 	print(file_save_list)
 	for file in file_save_list:
@@ -104,32 +105,33 @@ def file_search(root_dir):
 	return file_path_list
 
 
-if __name__ == '__main__':
-	mystoragename = "virtualmachinesdiag817"
-	print('input your key:')
-	key = input()
-	mystoragekey = key
-	blob_service = BlockBlobService(account_name=mystoragename, account_key=mystoragekey)
+def base_download(thread_name,span_path,storage_name,key,queue):
+    mystoragename = storage_name
+    mystoragekey = key
+    print(mystoragename)
+    print(key)
+    blob_service = BlockBlobService(account_name=mystoragename, account_key=mystoragekey)
 
-	containerGenerator = blob_service.list_containers()
-	marker = None
-	for con in containerGenerator:
-		time_list = []
-		if 'base-station' in con.name:
-			file_list = file_search('./')
-			print(file_list)
-			path_list = []
-			for file in file_list:
-				path_list.append(os.path.dirname(file))
-			print (path_list)
-			for i in range(len(path_list)):
-				file_time = file_list[i][-23:-4]
-				time_list = file_time.split('_')
-				print(time_list)
-				utc_day,utc_year,utc_hour = get_utc_day(time_list)
-				print("utc_day = %s,utc_year = %s,utc_hour = %s" % (utc_day,utc_year,utc_hour))
-				localpath = path_list[i] + '/' + 'base/'
-				downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour)
+    containerGenerator = blob_service.list_containers()
+    for con in containerGenerator:
+        time_list = []
+        if 'base-station' in con.name:
+            file_list = file_search(span_path)
+            print(file_list)
+            path_list = []
+            for file in file_list:
+                path_list.append(os.path.dirname(file))
+            print (path_list)
+            for i in range(len(path_list)):
+                file_time = file_list[i][-23:-4]
+                time_list = file_time.split('_')
+                print(time_list)
+                utc_day,utc_year,utc_hour = get_utc_day(time_list)
+                print("utc_day = %s,utc_year = %s,utc_hour = %s" % (utc_day,utc_year,utc_hour))
+                localpath = path_list[i] + '/' + 'base/'
+                downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour)
+    print('azure end')
+    queue.put("azure_end")
 
 
 
