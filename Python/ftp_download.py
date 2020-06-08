@@ -2,6 +2,7 @@
 import os
 import sys
 from ftplib import FTP
+import ftplib
 import gzip
 import time
 import datetime
@@ -51,7 +52,11 @@ def ftpDownload(ftp, ftpath, localpath):
     print('ftp_path: {0}'.format(ftpath))
     if not os.path.exists(localpath):
         os.makedirs(localpath)
-    ftp.cwd(ftpath)
+    try:
+        ftp.cwd(ftpath)
+    except ftplib.error_perm:
+        print ('error cannot cd to %s' % (ftpath) )
+        return False
     print('+---------- downloading ----------+')
     for file in ftp.nlst('-a', '.'):
         #print('file = --------------------%s' % file)
@@ -163,6 +168,9 @@ def ephemeris_download(thread_name,span_path,queue):
         ftp = ftpConnect(ftpserver, 21, usrname, pwd)
         flag = ftpDownload(ftp, ftpath, localpath)
         ftpDisConnect(ftp)
-        print("+-------- OK!!! --------+\n")
+        if flag == False:
+            print("+-------- FAILED!!! --------+\n")
+        else:
+            print("+-------- OK!!! --------+\n")
     queue.put("ftp_end")
 

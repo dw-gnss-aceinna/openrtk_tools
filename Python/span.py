@@ -63,37 +63,41 @@ def kill_app(signal_int,call_back):
     os.kill(os.getpid(),signal.SIGINT)
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT,kill_app)
-    para_dict = set_cmd_para()
-    print (para_dict)
-    base_run_queue = Queue(maxsize=1000)
-    ephemeris_run_queue = Queue(maxsize=1000)
-    
-    if para_dict["ephemeris"] == 'yes':
-        _thread.start_new_thread(ftp_download.ephemeris_download,("ephemeris_thread",para_dict["span_path"],ephemeris_run_queue))
-    if para_dict["base"] == 'yes':
-        _thread.start_new_thread(azure_download.base_download,("base_thread",para_dict["span_path"],para_dict["storage_name"],para_dict["storage_key"],base_run_queue))
+	signal.signal(signal.SIGINT,kill_app)
+	para_dict = set_cmd_para()
+	print (para_dict)
+	base_run_queue = Queue(maxsize=1000)
+	ephemeris_run_queue = Queue(maxsize=1000)
 
-    base_queue_mes = ''
-    ephemeris_queue_mes = ''
-    base_run_flag = False
-    ephemeris_run_flag = False
-    while True:
-        try:
-            base_queue_mes = base_run_queue.get_nowait()
-        except:
-            pass
-        try:
-            ephemeris_queue_mes = ephemeris_run_queue.get_nowait()
-        except:
-            pass
-        if(ephemeris_queue_mes == 'ftp_end'):
-            ephemeris_run_flag = True
-            print(ephemeris_queue_mes)
-        if(base_queue_mes == 'azure_end'):
-            base_run_flag = True
-            print(base_queue_mes)
-        if(ephemeris_run_flag == True) and (base_run_flag == True):
-            print("exit")
-            exit()
-        time.sleep(5)
+	if para_dict["ephemeris"] == 'yes':
+		_thread.start_new_thread(ftp_download.ephemeris_download,("ephemeris_thread",para_dict["span_path"],ephemeris_run_queue))
+	if para_dict["base"] == 'yes':
+		_thread.start_new_thread(azure_download.base_download,("base_thread",para_dict["span_path"],para_dict["storage_name"],para_dict["storage_key"],base_run_queue))
+
+	base_queue_mes = ''
+	ephemeris_queue_mes = ''
+	base_run_flag = False
+	ephemeris_run_flag = False
+	if para_dict["ephemeris"] == 'no':
+		ephemeris_run_flag = True
+	if para_dict["base"] == 'no':
+		base_run_flag = True
+	while True:
+		try:
+			base_queue_mes = base_run_queue.get_nowait()
+		except:
+			pass
+		try:
+			ephemeris_queue_mes = ephemeris_run_queue.get_nowait()
+		except:
+			pass
+		if(ephemeris_queue_mes == 'ftp_end'):
+			ephemeris_run_flag = True
+			print(ephemeris_queue_mes)
+		if(base_queue_mes == 'azure_end'):
+			base_run_flag = True
+			print(base_queue_mes)
+		if(ephemeris_run_flag == True) and (base_run_flag == True):
+			print("exit")
+			exit()
+		time.sleep(5)

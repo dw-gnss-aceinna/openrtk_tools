@@ -35,53 +35,58 @@ def find_convbin_file(file_to_search,root_dir):
 				return os.path.join(root, filename)
 	
 def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,utc_day,utc_hour):
-	dir = utc_year + '/' + utc_day
-	file_save_list = []
-	print(dir)
-	generator = blob_service.list_blobs(blobContainName,dir)
-	print("utc_hour = %d" % int(utc_hour))
-	base_min = chr(int(utc_hour[1:2]) + 97)
-	base_max = chr(int(utc_hour[1:2]) + 104)
-	print("base_min = %s" % base_min)
-	if not os.path.exists(local_path):
-		os.makedirs(local_path)
-	for blob in generator:
-		if ('wx02' in blob.name) and (blob.name[-6] >= base_min) and (blob.name[-6] < base_max):
-			blobDirName =  os.path.dirname(blob.name)
-			print("blob.name = %s" % blob.name)
-			'''
-			newBlobDirName = os.path.join(blobContainName, blobDirName)
-			if not os.path.exists(newBlobDirName):
-				os.makedirs(newBlobDirName)
-			'''
-			local_file_name = os.path.join(local_path, os.path.basename(blob.name))
+    dir = utc_year + '/' + utc_day
+    file_save_list = []
+    print("dir = %s" % (dir))
+    generator = blob_service.list_blobs(blobContainName,dir)
+    print("utc_hour = %d" % int(utc_hour))
+    base_min = chr(int(utc_hour[1:2]) + 97)
+    base_max = chr(int(utc_hour[1:2]) + 104)
+    print("base_min = %s" % base_min)
+    if not os.path.exists(local_path):
+        os.makedirs(local_path)
+    blob_useful = 0
+    for blob in generator:
+        if ('wx02' in blob.name) and (blob.name[-6] >= base_min) and (blob.name[-6] < base_max):
+            blobDirName =  os.path.dirname(blob.name)
+            print("blob.name = %s" % blob.name)
+            '''
+            newBlobDirName = os.path.join(blobContainName, blobDirName)
+            if not os.path.exists(newBlobDirName):
+                os.makedirs(newBlobDirName)
+            '''
+            local_file_name = os.path.join(local_path, os.path.basename(blob.name))
 
-			print("local_file_name = %s" % local_file_name)
-			file_save_list.append(local_file_name)
-			blob_service.get_blob_to_path(blobContainName, blob.name, local_file_name)
-		else:
-			continue
-	all_file_name = utc_year + '_' + utc_day + '_' + utc_hour + '.bin'
-	all_file_name_path = os.path.join(local_path, all_file_name)
-	fs = open(all_file_name_path,'ab')
-	#rtcm3_file = 'rtcm3_data_' + utc_year + '_' + utc_day + '_' + utc_hour
-	convbin_path = find_convbin_file('convbin.exe','../')
+            print("local_file_name = %s" % local_file_name)
+            file_save_list.append(local_file_name)
+            blob_service.get_blob_to_path(blobContainName, blob.name, local_file_name)
+            blob_useful+= 1
+        else:
+            continue
+    if(blob_useful == 0):
+        print("cannot find base data file!!!")
+        return
+    all_file_name = utc_year + '_' + utc_day + '_' + utc_hour + '.bin'
+    all_file_name_path = os.path.join(local_path, all_file_name)
+    fs = open(all_file_name_path,'ab')
+    #rtcm3_file = 'rtcm3_data_' + utc_year + '_' + utc_day + '_' + utc_hour
+    convbin_path = find_convbin_file('convbin.exe','../')
 
-	print(file_save_list)
-	for file in file_save_list:
-		fs_to_read = open(file,'rb')
-		data = fs_to_read.read()
-		fs.write(data)
-	fs.close()
-	if convbin_path == None:
-		return
-	try:
-		date = utc_year + '/' + utc_day + '/' + utc_hour
-		cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3' + ' -tr ' + date + ' 00:00:00  -v 3.04'
-		print(cmd)
-		os.system(cmd)
-	except:
-		pass
+    print(file_save_list)
+    for file in file_save_list:
+        fs_to_read = open(file,'rb')
+        data = fs_to_read.read()
+        fs.write(data)
+    fs.close()
+    if convbin_path == None:
+        return
+    try:
+        date = utc_year + '/' + utc_day + '/' + utc_hour
+        cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3' + ' -tr ' + date + ' 00:00:00  -v 3.04'
+        print(cmd)
+        os.system(cmd)
+    except:
+        pass
 
 
 def to_width(old_value):
