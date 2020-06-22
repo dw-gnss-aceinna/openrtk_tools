@@ -1,0 +1,6 @@
+azure-common==1.1.23
+azure-core==1.1.1
+azure-storage-blob==1.4.0
+azure-storage-common==1.4.2
+unlzw==0.1.1
+zipp==3.0.0
