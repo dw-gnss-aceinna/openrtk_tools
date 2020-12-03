@@ -58,9 +58,10 @@ def ftpDownload(ftp, ftpath, localpath):
         print ('error cannot cd to %s' % (ftpath) )
         return False
     print('+---------- downloading ----------+')
-    for file in ftp.nlst('-a', '.'):
-        #print('file = --------------------%s' % file)
-        if 'BRDC00IGS_R' in file:
+    #for file in ftp.nlst('-a', '.'):
+    for file in ftp.nlst():
+        print('file = --------------------%s' % file)
+        if 'BRDM' in file:
             local = os.path.join(localpath, file)
             print('local = ---------------------%s' % local)
             if os.path.isdir(file):
@@ -140,39 +141,39 @@ def to_width(old_value):
 	return ret
 
 def ephemeris_download(thread_name,span_path,queue):
-	print(span_path)
-	ftpserver = 'cddis.gsfc.nasa.gov' 
-	#ftp://198.118.242.40/pub/gps/data/daily/2020/184/20p/
-	ftpserver = 'cddis.nasa.gov'
-	ftpserver = '198.118.242.40'
-	port = 21
-	usrname = ''
-	pwd = ''
-	localpath = './data/'
-	#dir,files = file_search('./',False)
-	file_list = file_search(span_path)
-	print(file_list)
-	path_list = []
-	for file in file_list:
-		path_list.append(os.path.dirname(file))
-	print (path_list)
-	for i in range(len(path_list)):
-		print("select file is: %s" % file)
-		file_time = file_list[i][-23:-4]
-		time_list = file_time.split('_')
-		utc_day,utc_year = get_utc_day(time_list)
-		utc_day = to_width(utc_day)
-		print("utc_day = %s,utc_year = %s" % (utc_day,utc_year))
-		ftpath = 'pub/gps/data/daily/' + utc_year + '/' + utc_day + '/' + utc_year[2:] + 'p/'
-		localpath = path_list[i] + '/' + 'ephemeris/'
-		print (localpath)
-		print(ftpath)
-		ftp = ftpConnect(ftpserver, 21, usrname, pwd)
-		flag = ftpDownload(ftp, ftpath, localpath)
-		ftpDisConnect(ftp)
-		if flag == False:
-			print("+-------- FAILED!!! --------+\n")
-		else:
-			print("+-------- OK!!! --------+\n")
-	queue.put("ftp_end")
+    print(span_path)
+    #ftpserver = 'cddis.gsfc.nasa.gov'
+    ftpserver = 'cddis.nasa.gov'
+    ftpserver = 'igs.gnsswhu.cn'
+    port = 21
+    usrname = ''
+    pwd = ''
+    localpath = './data/'
+    #dir,files = file_search('./',False)
+    file_list = file_search(span_path)
+    print(file_list)
+    path_list = []
+    for file in file_list:
+        path_list.append(os.path.dirname(file))
+    print (path_list)
+    for i in range(len(path_list)):
+        print("select file is: %s" % file)
+        file_time = file_list[i][-23:-4]
+        time_list = file_time.split('_')
+        utc_day,utc_year = get_utc_day(time_list)
+        utc_day = to_width(utc_day)
+        print("utc_day = %s,utc_year = %s" % (utc_day,utc_year))
+        #ftpath = 'gnss/data/campaign/mgex/daily/rinex3/' + utc_year + '/' + utc_day + '/' + utc_year[2:] + 'p/'
+        ftpath = 'pub/gps/data/daily/' + utc_year + '/' + utc_day + '/' + utc_year[2:] + 'p/'        
+        localpath = path_list[i] + '/' + 'ephemeris/'
+        print (localpath)
+        print(ftpath)
+        ftp = ftpConnect(ftpserver, 21, usrname, pwd)
+        flag = ftpDownload(ftp, ftpath, localpath)
+        ftpDisConnect(ftp)
+        if flag == False:
+            print("+-------- FAILED!!! --------+\n")
+        else:
+            print("+-------- OK!!! --------+\n")
+    queue.put("ftp_end")
 

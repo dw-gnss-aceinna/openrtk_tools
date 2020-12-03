@@ -34,7 +34,7 @@ def find_convbin_file(file_to_search,root_dir):
 			if (file_to_search in filename):
 				return os.path.join(root, filename)
 	
-def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,utc_day,utc_hour):
+def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,utc_day,utc_hour,time_list):
     dir = utc_year + '/' + utc_day
     file_save_list = []
     print("dir = %s" % (dir))
@@ -81,7 +81,8 @@ def downloadFilesInContainer(local_path,blob_service,blobContainName,utc_year,ut
     if convbin_path == None:
         return
     try:
-        date = utc_year + '/' + utc_day + '/' + utc_hour
+        #date = utc_year + '/' + utc_day + '/' + utc_hour
+        date = time_list[0] + '/' + time_list[1] + '/' + time_list[2]
         cmd = os.path.abspath(convbin_path) + ' ' + os.path.abspath(all_file_name_path) + ' -r rtcm3' + ' -tr ' + date + ' 00:00:00  -v 3.04'
         print(cmd)
         os.system(cmd)
@@ -134,7 +135,7 @@ def base_download(thread_name,span_path,storage_name,key,queue):
                 utc_day,utc_year,utc_hour = get_utc_day(time_list)
                 print("utc_day = %s,utc_year = %s,utc_hour = %s" % (utc_day,utc_year,utc_hour))
                 localpath = path_list[i] + '/' + 'base/'
-                downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour)
+                downloadFilesInContainer(localpath,blob_service,con.name,utc_year,utc_day,utc_hour,time_list)
     queue.put("azure_end")
 
 
